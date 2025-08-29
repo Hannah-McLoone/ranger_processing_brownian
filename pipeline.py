@@ -8,18 +8,10 @@ import numpy as np
 """
 to do:
 change date for ndvi
-change scale
 """
 
 
-ee.Authenticate()
-ee.Initialize(project="friction-maps")
-scale = 100
-CRS = "EPSG:4326"
-
-
-
-
+scale = 10
 static = {"cover": ("ESA/WorldCover/v200", scale, 'Map'),
           "elevation": ("CGIAR/SRTM90_V4", scale, 'elevation'),
           "slope": ("CGIAR/SRTM90_V4", scale, 'slope'), # slope derived from this
@@ -119,7 +111,12 @@ def get_ndvi(region, start='2020-01-01', end='2020-01-30'):
 
 
 
-def pipeline(park):  
+def pipeline(park, scale):  
+
+    ee.Authenticate()
+    ee.Initialize(project="friction-maps")
+    CRS = "EPSG:4326"
+
     lons, lat = get_park_bbox(park)
     bbox =  ee.Geometry.Rectangle([lons[0], lat[0], lons[1], lat[1]]) #[minLon, minLat, maxLon, maxLat]
 
@@ -137,4 +134,4 @@ def pipeline(park):
             f.write(s2_tif)
 
 
-#pipeline('oban')
+#pipeline('oban', 100)

@@ -90,8 +90,9 @@ def create_feature_speed_intesity_tables(resolution, areas, feature_list,x,y):
 
         #gpx_file = f'data/{area}/gps.gpx'
         #data = generate_friction_map(x,y,resolution,true_sigma, gpx_file)
-        rank = np.loadtxt('output/intensity_small.csv', delimiter=",")  # Assumes all numeric
-        speed = np.loadtxt('output/speed_small.csv', delimiter=",")  # Assumes all numeric
+        #rank = np.loadtxt('output/intensity_small.csv', delimiter=",")  # Assumes all numeric
+        #speed = np.loadtxt('output/speed_small.csv', delimiter=",")  # Assumes all numeric
+        speed = np.loadtxt('oban_apeed10.csv', delimiter=",")  # Assumes all numeric
 
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
@@ -100,17 +101,17 @@ def create_feature_speed_intesity_tables(resolution, areas, feature_list,x,y):
         size = shape[0] * shape[1]
         rank[rank<20] = 0
         speed = np.where(rank != 0, speed, np.nan)
-        rank = rankdata(rank, method='max').reshape(shape) / size
+        #rank = rankdata(rank, method='max').reshape(shape) / size
 
         #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         #flipping to match
-        rank = rank[::-1]
+        #rank = rank[::-1]
         speed = speed[::-1]
 
         # Stack inputs
         X = np.stack(features, axis=1)
         y = speed.ravel()
-        y2 = rank.ravel()
+        #y2 = rank.ravel()
 
         # Mask to filter out any rows with NaNs in X or y
         #valid_mask = ~np.isnan(X).any(axis=1) & ~np.isnan(y)
@@ -118,16 +119,16 @@ def create_feature_speed_intesity_tables(resolution, areas, feature_list,x,y):
         # Apply mask
         X_clean = X#[valid_mask]
         y_clean = y#[valid_mask]
-        y2_clean = y2#[valid_mask]
+        #y2_clean = y2#[valid_mask]
 
         df = pd.DataFrame(X_clean, columns=feature_list)
         df["speed"] = y_clean 
-        df["rank"] = y2_clean
+        #df["rank"] = y2_clean
 
         #we now have a datframe of speed, rank and features
         return df
 
-if False:
+if True:
     areas = ['oban']
     feature_list = ['ndvi','biomass','cover','elevation', 'slope']
     resolution = np.float64(0.0001) 

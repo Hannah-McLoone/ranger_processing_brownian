@@ -2,20 +2,16 @@ import numpy as np
 from sklearn.model_selection import RandomizedSearchCV
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import RandomizedSearchCV
-
-
-from sklearn.datasets import make_regression
+import pandas as pd
 from sklearn.model_selection import train_test_split
 
 # ---- Generate synthetic regression data ----
 # 1000 samples, 20 features, 10 of which are informative
-X, y = make_regression(
-    n_samples=1000,
-    n_features=20,
-    n_informative=10,
-    noise=0.2,
-    random_state=42
-)
+
+df_loaded = pd.read_csv('output/oban_features_speed_and_rank.csv')
+X = df_loaded.iloc[:, :-1].values
+y = df_loaded.iloc[:, -1].values
+
 
 # Split into train/test sets
 train_features, test_features, train_labels, test_labels = train_test_split(
@@ -24,17 +20,6 @@ train_features, test_features, train_labels, test_labels = train_test_split(
 
 
 # ---- Your RandomizedSearchCV code can run directly here ----
-
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -84,6 +69,8 @@ rf_random = RandomizedSearchCV(
     random_state=42,
     n_jobs=-1
 )
+
+
 
 # Fit the random search model
 rf_random.fit(train_features, train_labels)

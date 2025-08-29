@@ -1,16 +1,17 @@
 from create_map.generate_map import *
 import matplotlib.pyplot as plt
+from scipy.stats import normaltest, norm
 import scipy.stats as stats
 import random
 import statistics
 
 # standard deviation vs intensity!!!!!!!!!!!
-# my normal turned into a chai- squared test
+# my normal turned into a chai- squared
 
 
 
 #_________________________Testing brownian bridge ___________________________________
-
+"""
 
 start_coord = (0,0)
 start_time = 0
@@ -158,18 +159,15 @@ print("TEST 11: ",(simple_map.general == expected).all())
 
 
 """
-DOES NOT WORK 
 
-fake_map = grid_map.__new__(grid_map)
+simple_map = grid_map.__new__(grid_map)
 
 # Manually set only the attributes needed by `increase`
-fake_map.resolution_x = 1
-fake_map.resolution_y = 1
-fake_map.x_range = [0, 100]
-fake_map.y_range = [0, 100]
-fake_map.width = 100
-fake_map.height = 100
-fake_map.general = np.zeros((fake_map.height, fake_map.width))
+simple_map.resolution_x = 1
+simple_map.resolution_y = 1
+simple_map.x_range = [0, 1000]
+simple_map.y_range = [0, 1000]
+simple_map.set_up()
 
 row = {'north':1,
        'south':1,
@@ -177,20 +175,20 @@ row = {'north':1,
        'west':1,
        'time':pd.to_datetime("2025-08-21 10:00:00"),
        'prev_time':pd.to_datetime("2025-08-21 09:59:00"),
-       'x':50,
-       'prev_x':50,
-       'y':10,
-       'prev_y':90,
+       'x':100,
+       'prev_x':900,
+       'y':900,
+       'prev_y':100,
        'speed_kmph':5}
 
-connect_points_with_bb_simulations(row, 3, fake_map, fake_map, 10000)
+connect_points_with_bb_simulations(row, 3, simple_map, simple_map, 100000, 1000)
 
-stat, p = stats.shapiro(fake_map.general[20])
-plt.plot(fake_map.general[20])
+
+t = np.diagonal(simple_map.general)
+plt.plot(t)
 plt.show()
-print(p > 0.05)
 
-#plt.imshow(fake_map.general, cmap='hot')
-#plt.colorbar()
-#plt.show()
-"""
+plt.plot(t[470:530])
+plt.show()
+
+#should look normal (accounting for some noise)

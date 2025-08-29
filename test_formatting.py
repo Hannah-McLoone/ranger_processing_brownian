@@ -111,18 +111,72 @@ print(d == 0)
 #_________________Testing directional_distance ___________________
 
 
-# for any 2 points, (that are not the same) the result should have 2 positive weights, and 2 '0' values
+value = directional_distance({'prev_x':1, 'prev_y':1, 'x':1, 'y':1})
+print((value == [0,0,0,0,0]).all())
+
+
+# for any 2 points, (where x and y both change) the result should have 2 positive weights, and 2 zero values
 #result should also have weightings whose square sums to 1
 
 value = directional_distance({'prev_x':0, 'prev_y':0, 'x':1, 'y':1})
-print(round(sum([i ** 2 for i in value[1:5]]),5) == 1)
-print(sum(1 for x in value[1:5] if x > 0) == 2 )#and value.count(0) == 2)
+print(np.count_nonzero(value[1:5] == 0) == 2 and np.count_nonzero(value[1:5] > 0) == 2)
+print(round(sum([i**2 for i in value[1:5]]),5) == 1)
 
-value = directional_distance({'prev_x':1, 'prev_y':1, 'x':1, 'y':1})
-[0,0,0,0,0]
+
+value = directional_distance({'prev_x':73.30, 'prev_y':-23.49, 'x':13.1, 'y':-11})
+print(np.count_nonzero(value[1:5] == 0) == 2 and np.count_nonzero(value[1:5] > 0) == 2)
+print(round(sum([i**2 for i in value[1:5]]),5) == 1)
+
+
+value = directional_distance({'prev_x':0, 'prev_y':50, 'x':0, 'y':-2.541})
+print(np.count_nonzero(value[1:5] == 0) == 3 and np.count_nonzero(value[1:5] > 0) == 1)
+print(round(sum([i**2 for i in value[1:5]]),5) == 1)
+
+
+def rounded_test(a,b):
+  for i in range (0,len(a)):
+    if np.isnan(a[0]) and np.isnan(b[0]) :
+      pass
+    elif (round(a[i],3) != round(b[i],3)):
+      return False
+  return True
 
 
 value = directional_distance({'prev_x':0, 'prev_y':0, 'x':1, 'y':1})
-#print([sqrt(1/2),0, 1/2 ** 0.5, 0])
-#print(value[1:5])
+print(rounded_test([sqrt(1/2),0, sqrt(1/2), 0], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':0, 'y':1})
+print(rounded_test([1,0, 0, 0], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':1, 'y':0})
+print(rounded_test([0,0, 1, 0], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':-1, 'y':1})
+print(rounded_test([sqrt(1/2),0,0, sqrt(1/2)], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':1, 'y':-1})
+print(rounded_test([0,sqrt(1/2), sqrt(1/2), 0], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':-1, 'y':-1})
+print(rounded_test([0,sqrt(1/2),0, sqrt(1/2)], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':0, 'y':-1})
+print(rounded_test([0,1, 0, 0], list(value[1:5])))
+
+value = directional_distance({'prev_x':0, 'prev_y':0, 'x':-1, 'y':0})
+print(rounded_test([0,0,0,1], list(value[1:5])))
+
+
+
 #_________________Testing convert_to_speeds_______________________
+# all of the aspects have been individually tested on other tests, so just one to bring it all together.
+
+
+df = pd.DataFrame({ "x":[0, 0, 0.01],
+ "y":[0, 0, 0.05],
+ "time":[pd.Timestamp("2021-01-01T13:00:00Z"), 
+         pd.Timestamp("2021-01-01T14:00:00Z"), 
+         pd.Timestamp("2021-01-01T16:00:00Z")]})
+
+df = convert_to_speeds(df)
+print(rounded_test(df['speed_kmph'],[np.nan, 0, 5.67/2 ] ))
