@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from create_map.formatting_improved import format_gpx, convert_to_speeds
+from formatting_improved import format_gpx, convert_to_speeds
 from scipy.optimize import minimize_scalar
 import math
 import numpy as np

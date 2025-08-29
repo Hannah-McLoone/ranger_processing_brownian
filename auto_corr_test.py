@@ -4,6 +4,7 @@ import anndata
 import random
 import pandas as pd
 
+
 def downsample_2d(arr, factor=10):
     # Get new shape
     h, w = arr.shape
@@ -38,10 +39,10 @@ def make_block_cv_ids(height, width, block_size, n_folds=5):
 
 morans_i_values = []
 significant = []
-for n in range (0,11):
-    speed = np.loadtxt('oban_speed10.csv', delimiter=",")
-    if n > 0:
-        speed = downsample_2d(speed, 2**n)
+for n in range (2**6,2**8,10):
+    speed = np.loadtxt('oban_speed90.csv', delimiter=",")
+
+    speed = downsample_2d(speed, n)
 
     speed[np.isnan(speed)] = 0
     height, width = speed.shape
@@ -60,7 +61,7 @@ for n in range (0,11):
 
 
     vals = []
-    for n in range (1,100):
+    if False:# for i in range (1,1):
         non_zero_idx = features != 0
 
         # Shuffle only non-zero values
@@ -73,15 +74,16 @@ for n in range (0,11):
         vals.append(mi)
 
 
-    lower = np.percentile(vals, 5)
-    upper = np.percentile(vals, 95)
+    #lower = np.percentile(vals, 5)
+    #upper = np.percentile(vals, 95)
 
     # Check if x is in the outer 5%
-    if x < lower or x > upper:
-        significant.append(1)
-    else:
-        significant.append(0)
+    #if x < lower or x > upper:
+    #    significant.append(1)
+    #else:
+    #    significant.append(0)
 
 
-np.savetxt("morans_i.csv", np.array(morans_i_values), delimiter=",", fmt='%.6f')
-np.savetxt("significance.csv", np.array(significant), delimiter=",", fmt='%.6f')
+np.savetxt(f"morans_i_full.csv", np.array(morans_i_values), delimiter=",", fmt='%.6f')
+#print(morans_i_values)
+#np.savetxt(f"significance.csv", np.array(significant), delimiter=",", fmt='%.6f')

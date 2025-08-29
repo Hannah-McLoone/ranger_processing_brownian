@@ -180,3 +180,6 @@ df = pd.DataFrame({ "x":[0, 0, 0.01],
 
 df = convert_to_speeds(df)
 print(rounded_test(df['speed_kmph'],[np.nan, 0, 5.67/2 ] ))
+
+
+

@@ -11,7 +11,8 @@ change date for ndvi
 """
 
 
-scale = 10
+scale = 90
+CRS = "EPSG:4326"
 static = {"cover": ("ESA/WorldCover/v200", scale, 'Map'),
           "elevation": ("CGIAR/SRTM90_V4", scale, 'elevation'),
           "slope": ("CGIAR/SRTM90_V4", scale, 'slope'), # slope derived from this
@@ -43,7 +44,6 @@ def get_static(image_url: str, scale: int, crs: str, region: list[list[float]], 
     if response.status_code == 200:
         with zipfile.ZipFile(io.BytesIO(response.content)) as file:
             with file.open(file.infolist()[0]) as f:
-                print(3)
                 return f.read()
 
 def get_park_bbox(park):

@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 #from scipy.stats import rankdata
-from create_map.formatting_improved import format_gpx, convert_to_speeds, get_park_bbox
-from create_map.determining_sigma import determine_sigmas
+from formatting_improved import format_gpx, convert_to_speeds, get_park_bbox
+from determining_sigma import determine_sigmas
 import sys
 import math
 import matplotlib.pyplot as plt
@@ -130,13 +130,13 @@ def run_main(x_range, y_range, resolution_in_metres, number_of_runs,paths, varia
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 2:
-        print("Usage: python script.py <resolution_in_metres>")
+    if len(sys.argv) != 3:
+        print("Usage: python script.py <park> <resolution_in_metres>")
         sys.exit(1)
     
 
-    resolution_in_metres = int(sys.argv[1]) # 10?
-    park = 'oban'#----------------------------------
+    park = sys.argv[1] # mbe, okwangwo
+    resolution_in_metres = int(sys.argv[2]) # 10?
     number_of_runs = 100#----------------------------------
 
 
@@ -145,7 +145,11 @@ if __name__ == "__main__":
     x_range, y_range = get_park_bbox(park)
 
     gpx_file = f'{park}.gpx' # put in folder?
+    #summer_df_list, winter_df_list = format_gpx(gpx_file)
     df_list = format_gpx(gpx_file)
+
+
+    #do this for winter too:
     paths = []
     for df in df_list:
         paths.append(convert_to_speeds(df))

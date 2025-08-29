@@ -1,4 +1,4 @@
-from aligning import create_feature_speed_intesity_tables
+from other.aligning import create_feature_speed_intesity_tables
 import numpy as np
 import scanpy as sc
 import anndata

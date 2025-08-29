@@ -11,33 +11,36 @@ def format_gpx(gpx_file):
 
     ns = {'default': 'http://www.topografix.com/GPX/1/1'}
 
-    paths = []
+    winter_paths = []
+    summer_paths = []
     for track_index, trk in enumerate(root.findall('default:trk', ns)):
-        track_name_elem = trk.find('default:name', ns)
-        track_name = track_name_elem.text if track_name_elem is not None else f"Track_{track_index + 1}"
-
         for segment_index, seg in enumerate(trk.findall('default:trkseg', ns)):
-            points = []
+            winter_points = []
+            summer_points = []
             for trkpt in seg.findall('default:trkpt', ns):
                 lat = float(trkpt.attrib['lat'])
                 lon = float(trkpt.attrib['lon'])
                 time_elem = trkpt.find('default:time', ns)
-                time = time_elem.text if time_elem is not None else None
+                time = pd.to_datetime(time_elem.text if time_elem is not None else None)
+
+                entry = {'x': lon,'y': lat,'time': time}
+
+                if time.month in [3,4,5,6,7,8]:
+                    summer_points.append(entry)
+
+                else:
+                    winter_points.append(entry)
 
 
-                #all points in a dataframe are of the same track and segment
-                points.append({
-                    'x': lon,
-                    'y': lat,
-                    'time': time
-                })
+            #all points in a dataframe are of the same track and segment
 
-            df = pd.DataFrame(points)
-            df['time'] = pd.to_datetime(df['time'])
+            if summer_points != []:
+                summer_paths.append(pd.DataFrame(summer_points))
 
-            paths.append(df)
-
-    return paths
+            if winter_points != []:
+                winter_paths.append(pd.DataFrame(winter_points))
+                
+    return summer_paths, winter_paths
 
 
 
