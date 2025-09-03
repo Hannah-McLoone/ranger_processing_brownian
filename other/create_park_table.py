@@ -24,7 +24,7 @@ change date for ndvi
 """
 
 
-def get_static(image_url: str, scale: int, crs: str, region: list[list[float]], layer: str | None = None):
+def get_static(image_url: str, scale_in_metres: int, crs: str, region: list[list[float]], layer: str | None = None):
     try:
         img = ee.Image(image_url)
         flag_to_break_try = img.bandNames().getInfo()
@@ -39,7 +39,7 @@ def get_static(image_url: str, scale: int, crs: str, region: list[list[float]], 
         img = img.select(layer)
 
     url = img.getDownloadURL({
-        "scale": scale,
+        "scale": scale_in_metres,
         "crs": crs,
         "region": region
     })
@@ -73,7 +73,7 @@ def get_park_bbox(park):
 
 
 
-def get_ndvi(region, start='2020-01-01', end='2020-01-30'):
+def get_ndvi(region,scale_in_metres, start='2020-01-01', end='2020-01-30'):
     def mask_clouds(image):
         qa = image.select('QA60')
         mask = qa.bitwiseAnd(1 << 10).eq(0).And(qa.bitwiseAnd(1 << 11).eq(0))
@@ -90,7 +90,7 @@ def get_ndvi(region, start='2020-01-01', end='2020-01-30'):
     # Compute NDVI: (B8 - B4)/(B8 + B4)
     ndvi = composite.normalizedDifference(['B8', 'B4']).rename('NDVI')
     url = ndvi.getDownloadURL({
-        "scale": scale,
+        "scale": scale_in_metres,
         "crs": CRS,
         "region": region
     })
@@ -106,7 +106,7 @@ def get_ndvi(region, start='2020-01-01', end='2020-01-30'):
 
 
 
-def get_features(park, scale):  
+def get_features(park, scale_in_metres):  
 
     ee.Authenticate()
     ee.Initialize(project="friction-maps")
@@ -115,15 +115,15 @@ def get_features(park, scale):
     lons, lat = get_park_bbox(park)
     bbox =  ee.Geometry.Rectangle([lons[0], lat[0], lons[1], lat[1]]) #[minLon, minLat, maxLon, maxLat]
 
-    for name, (image_url, scale, layer) in static.items(): #tqdm(static.items(), desc="static"):
+    for name, (image_url, scale_in_metres, layer) in static.items(): #tqdm(static.items(), desc="static"):
         filename = f"data/{park}/{name}.tif"
 
-        tif = get_static(image_url=image_url, scale=scale, crs=CRS, region=bbox, layer=layer)
+        tif = get_static(image_url=image_url, scale_in_metres = scale_in_metres, crs=CRS, region=bbox, layer=layer)
         if tif:
             with open(filename, "wb") as f:
                 f.write(tif)
 
-    s2_tif = get_ndvi(bbox)
+    s2_tif = get_ndvi(bbox, scale_in_metres)
     if s2_tif:
         with open(f"data/{park}/ndvi.tif", "wb") as f:
             f.write(s2_tif)
@@ -169,11 +169,16 @@ def open_and_reproject_to_dimensions(file, dst_crs, park, shape):
 
 
 
+def block_ids(shape, block_size):
+    rows, cols = shape
+    r = np.arange(rows) // block_size
+    c = np.arange(cols) // block_size
+    return (r[:, None] * ((cols + block_size - 1) // block_size) + c[None, :])
 
 
 
 
-def create_park_table(park, feature_list, scale_in_metres):
+def create_park_table(park, feature_list, scale_in_metres, block_size = 150):
     get_features(park,scale_in_metres) # get the feature table
 
 
@@ -190,6 +195,8 @@ def create_park_table(park, feature_list, scale_in_metres):
     for f in feature_list:
         feature_as_map = open_and_reproject_to_dimensions(f"data/{park}/{f}.tif", "EPSG:4326", park, speed.shape)
         features.append(feature_as_map.ravel())
+    
+    features.append([park]*len(features[0]))
 
 
     #____combine into one big table____
@@ -198,18 +205,22 @@ def create_park_table(park, feature_list, scale_in_metres):
     rank = rank[::-1]
     speed = speed[::-1]
 
+
     # Stack inputs
     X = np.stack(features, axis=1)
-    df = pd.DataFrame(X, columns=feature_list)
+    df = pd.DataFrame(X, columns=feature_list + ['park'])
+
     df["speed"] = speed.ravel()
     df["rank"] = rank.ravel()
-
+    df["block_id"] = block_ids(rank.shape, block_size).ravel()
     return df
+
+
 
 
 if __name__ == "__main__":
     scale_in_metres = 90 # ---------
-    park = 'afi' # --------- # mbe # okwangwo
+    park = 'oban' # --------- # mbe # okwangwo
 
     assert os.path.isfile(f"{park}_intensity{scale_in_metres}.csv"), f"File does not exist:{park}_intensity{scale_in_metres}.csv"
     assert os.path.isfile(f"{park}_speed{scale_in_metres}.csv"), f"File does not exist: {park}_speed{scale_in_metres}.csv"
@@ -225,4 +236,5 @@ if __name__ == "__main__":
 
     df = create_park_table(park, feature_list, scale_in_metres)
     df.to_csv('features_and_output.csv', index=False) 
-    #process rank + get rid of nans
+    
+    #in next programs, process rank + get rid of nans, split into train and test using the id

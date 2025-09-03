@@ -120,7 +120,7 @@ def convert_to_speeds(df):
 
 
 def get_park_bbox(park):
-    tree = ET.parse(f"{park}.gpx")
+    tree = ET.parse(f"gps/{park}.gpx")
     root = tree.getroot()
 
     lats = []

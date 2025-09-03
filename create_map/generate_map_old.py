@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 #from scipy.stats import rankdata
-from formatting_with_seasons import format_gpx, convert_to_speeds, get_park_bbox, get_park_years
+from formatting_improved import format_gpx, convert_to_speeds, get_park_bbox
 from determining_sigma import determine_sigmas
 import sys
 import math
@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 
 class grid_map:
     def __init__(self, resolution_in_metres, x_range, y_range):
-        degree_lat_per_metre = 1 / 111320
+        degree_lat_per_metre = 1 / 111320 
         degree_lon_per_metre = 1 / (111320.0 * math.cos(math.radians(y_range[0])))
 
         self.resolution_x = resolution_in_metres * degree_lon_per_metre
@@ -118,23 +118,6 @@ def run_main(x_range, y_range, resolution_in_metres, number_of_runs,paths, varia
     return speed, intensity
 
 
-def create_single_map(df_list, year, month):
-    paths = []
-    for df in df_list:
-        paths.append(convert_to_speeds(df))
-
-
-    variance_list = determine_sigmas(paths)
-
-    speed, intensity = run_main(x_range, y_range, resolution_in_metres, number_of_runs, paths, variance_list)
-
-    np.savetxt(f"/maps/hm708/bb_maps/{park}_{year}_{month}_speed{resolution_in_metres}.csv", speed.general, delimiter=",", fmt='%.6f')
-    np.savetxt(f"/maps/hm708/bb_maps/{park}_{year}_{month}_intensity{resolution_in_metres}.csv", intensity.general, delimiter=",", fmt='%.6f')
-
-
-
-
-
 
 
 
@@ -154,12 +137,19 @@ if __name__ == "__main__":
     x_range, y_range = get_park_bbox(park)
 
     gpx_file = f'gps/{park}.gpx' # put in folder?
-    years = get_park_years(gpx_file)
     
     df_list = format_gpx(gpx_file)
 
-    for year_index in range (0,len(df_list)):
-        for month in range (0,12):
-            create_single_map(df_list[year_index][month], years[0] + year_index, month) # change from 2016!!!!!
+    paths = []
+    for df in df_list:
+        paths.append(convert_to_speeds(df))
+
+
+    variance_list = determine_sigmas(paths)
+
+    speed, intensity = run_main(x_range, y_range, resolution_in_metres, number_of_runs, paths, variance_list)
+
+    np.savetxt(f"{park}_speed{resolution_in_metres}.csv", speed.general, delimiter=",", fmt='%.6f')
+    np.savetxt(f"{park}_intensity{resolution_in_metres}.csv", intensity.general, delimiter=",", fmt='%.6f')
 
 

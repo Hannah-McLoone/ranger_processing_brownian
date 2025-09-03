@@ -2,6 +2,10 @@ import xml.etree.ElementTree as ET
 import pandas as pd
 import numpy as np
 from math import radians, cos, sin, asin, sqrt
+from datetime import datetime
+#need to edit so that the years are present are not hard-coded in
+# (right now 2016 to 2024)
+
 
 
 
@@ -10,37 +14,44 @@ def format_gpx(gpx_file):
     root = tree.getroot()
 
     ns = {'default': 'http://www.topografix.com/GPX/1/1'}
+    years = get_park_years(gpx_file)
+    paths = []
+    for year_index in range (0,years[1]-years[0]+1):
+        paths.append([])
+        for month in range (0,12):
+            paths[year_index].append([])
 
-    winter_paths = []
-    summer_paths = []
+
     for track_index, trk in enumerate(root.findall('default:trk', ns)):
         for segment_index, seg in enumerate(trk.findall('default:trkseg', ns)):
-            winter_points = []
-            summer_points = []
+
+            points = []
+            for year_index in range (0,years[1]-years[0]+1):
+                points.append([])
+                for month in range (0,12):
+                    points[year_index].append([])
+
             for trkpt in seg.findall('default:trkpt', ns):
                 lat = float(trkpt.attrib['lat'])
                 lon = float(trkpt.attrib['lon'])
                 time_elem = trkpt.find('default:time', ns)
                 time = pd.to_datetime(time_elem.text if time_elem is not None else None)
+                year_index = time.year -  years[0]
 
                 entry = {'x': lon,'y': lat,'time': time}
 
-                if time.month in [3,4,5,6,7,8]:
-                    summer_points.append(entry)
-
-                else:
-                    winter_points.append(entry)
+                if year_index>=0:#there are a couple random entries from 1970
+                    points[year_index][time.month - 1].append(entry)
 
 
             #all points in a dataframe are of the same track and segment
+            for year_index in range (0,len(paths)):
+                for month in range (0,12):
+                    if points[year_index][month] != []:
+                        paths[year_index][month].append(pd.DataFrame(points[year_index][month]))
 
-            if summer_points != []:
-                summer_paths.append(pd.DataFrame(summer_points))
-
-            if winter_points != []:
-                winter_paths.append(pd.DataFrame(winter_points))
                 
-    return summer_paths, winter_paths
+    return paths
 
 
 
@@ -123,7 +134,7 @@ def convert_to_speeds(df):
 
 
 def get_park_bbox(park):
-    tree = ET.parse(f"{park}.gpx")
+    tree = ET.parse(f"gps/{park}.gpx")
     root = tree.getroot()
 
     lats = []
@@ -139,3 +150,26 @@ def get_park_bbox(park):
     x = np.array([min(lons),max(lons)],dtype=np.float64)
     y = np.array([min(lats), max(lats)],dtype=np.float64)
     return (x,y)
+
+
+
+
+def get_park_years(gpx_file):
+    ns = {"gpx": "http://www.topografix.com/GPX/1/1"}
+    root = ET.parse(gpx_file).getroot()
+
+    years = []
+    for trkpt in root.findall(".//gpx:trkpt", ns):
+        t = trkpt.find("gpx:time", ns)
+        if t is not None and t.text:
+            try:
+                years.append(datetime.fromisoformat(t.text.replace("Z", "+00:00")).year)
+            except ValueError:
+                pass
+
+    return (max(min(years),2016), max(years)) if years else None
+
+
+
+#df_list = format_gpx('gps/oban.gpx')
+#print(df_list)

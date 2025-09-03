@@ -32,7 +32,7 @@ mapping_dict = {
 
 df_loaded = pd.read_csv('output/oban_features_speed_and_rank.csv')
 df_loaded = pd.read_csv('analysing_tabular_data/feature_table.csv')
-df_loaded['WorldCover'] = df_loaded['WorldCover'].map(lambda x: mapping_dict.get(x, x))#!!!!!!!!!!!!!!!!
+df_loaded['WorldCover'] = df_loaded['WorldCover'].map(lambda x: mapping_dict.get(x, x))#!!!!!!!!!!!!!!!! turn into category
 
 
 # If you need X and y back:
@@ -57,7 +57,6 @@ X_test_scaled = one_hot.transform(X_test)
 
 
 models = {
-    #"Linear Regression": LinearRegression(),
     "Random Forest": RandomForestRegressor(),
     "Gradient Boosting": GradientBoostingRegressor(),
     "Support Vector Regressor": LinearSVR(),
