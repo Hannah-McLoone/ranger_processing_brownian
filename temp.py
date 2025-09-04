@@ -1,9 +1,13 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 
 # Load your CSV (replace 'your_file.csv' with the actual filename)
-df = pd.read_csv("oban_2018_1_intensity90.csv")
-df = df.clip(upper=200000)
+#df = pd.read_csv("oban_2018_1_intensity90.csv")
+df = pd.read_csv("sanity_check.csv")
+df = df.clip(upper= 60000)
+df[df < 300] = 0
+df = np.flipud(df.values)
 
 # Show as heatmap
 plt.imshow(df, cmap="hot", aspect="auto")

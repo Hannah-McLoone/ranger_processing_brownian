@@ -5,7 +5,7 @@ import rasterio
 import numpy as np
 import xml.etree.ElementTree as ET
 import pandas as pd
-
+import sys
 
 def open_and_reproject_to_dimensions(file, dst_crs, park, shape):
     # this function reprojects the physical feature to be compatible with the tracklog map
@@ -120,6 +120,16 @@ def create_park_table(park, feature_list, year, month, scale_in_metres, block_si
     df["rank"] = rank.ravel()
     df["block_id"] = block_ids(rank.shape, block_size).ravel()
 
+    #change precipitation column to drop date, etc...
+    df.columns = [
+        "temperature" if col.startswith("temperature_")
+        else "precipitation" if col.startswith("precipitation_")
+        else "humidity" if col.startswith("humidity")
+        else col
+        for col in df.columns
+    ]
+
+
     df = df[df['rank'] > 100]
     #add in location
     
@@ -130,8 +140,19 @@ def create_park_table(park, feature_list, year, month, scale_in_metres, block_si
 #assert os.path.isfile(f"{park}_speed{scale_in_metres}.csv"), f"File does not exist: {park}_speed{scale_in_metres}.csv"
 
 
-for y in range(2016,2025):
-    for m in range (1,12):#???
-        date = f"{y}-{m:02d}-01"
-        feature_list = ["cover", "temperature_"+date, "humidity_"+date, "precipitation_"+date, "elevation", "slope", "biomass"]
-        create_park_table('oban', feature_list, y, m, 90)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <> <> <>")
+        sys.exit(1)
+
+    park = sys.argv[1] 
+    start_year =  int(sys.argv[2]) 
+    end_year = int(sys.argv[3])
+    
+
+    for y in range(start_year,end_year):
+        for m in range (1,12):#???
+            date = f"{y}-{m:02d}-01"
+            feature_list = ["cover", "temperature_"+date, "humidity_"+date, "precipitation_"+date, "elevation", "slope", "biomass", 'ndvi']
+            create_park_table(park, feature_list, y, m, 90)

@@ -6,23 +6,9 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.preprocessing import StandardScaler
 
 def clean(df):
-    temp_cols = [col for col in df.columns if "temperature" in col]
-    df["temperature"] = df[temp_cols].bfill(axis=1).iloc[:, 0]
-    df = df.drop(columns=temp_cols)
-
-
-    temp_cols = [col for col in df.columns if "humidity" in col]
-    df["humidity"] = df[temp_cols].bfill(axis=1).iloc[:, 0]
-    df = df.drop(columns=temp_cols)
-
-
-    temp_cols = [col for col in df.columns if "precipitation" in col]
-    df["precipitation"] = df[temp_cols].bfill(axis=1).iloc[:, 0]
-    df = df.drop(columns=temp_cols)
-
-
     df = df.drop(columns=['block_id'])
 
+    df = df.drop(columns=[col for col in df.columns if col.startswith("humid")])
     df = df.replace(-np.inf, np.nan).dropna()
 
 
@@ -77,14 +63,13 @@ X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
 
-
 y_pred = [speed_train.mean()] * len(speed_test)
 
 r2 = r2_score(speed_test, y_pred)
 mae = mean_absolute_error(speed_test, y_pred)
 rmse = np.sqrt(mean_squared_error(speed_test, y_pred))
 print(r2,mae,rmse)
-print(0/0)
+
 #____________________the machine learning___________________________
 
 """

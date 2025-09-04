@@ -21,7 +21,7 @@ change date for ndvi
 
 
 
-def download(img, crs, region):
+def download(img, crs, region,scale_in_metres):
     url = img.getDownloadURL({
         "scale": scale_in_metres,
         "crs": crs,
@@ -42,13 +42,14 @@ def terrain(image_url: str, scale_in_metres: int, crs: str, region: list[list[fl
     img = img.select('elevation')
     if layer == 'slope':
         img = ee.Terrain.slope(img)
-    return download(img, crs, region)
+    return download(img, crs, region,scale_in_metres
+                    )
 
 def others(image_url: str, scale_in_metres: int, crs: str, region: list[list[float]], layer: str | None = None):
     collection = ee.ImageCollection(image_url)
     img = collection.first()
     img = img.select(layer)
-    return download(img, crs, region)
+    return download(img, crs, region,scale_in_metres)
 
 
 def weather(start, end, image_url: str, scale_in_metres: int, crs: str, region: list[list[float]], layer: str | None = None,):
@@ -56,7 +57,7 @@ def weather(start, end, image_url: str, scale_in_metres: int, crs: str, region: 
     date_filtered_collection = collection.filterDate(start, end)
     img = date_filtered_collection.mean()
     img = img.select(layer)
-    return download(img, crs, region)
+    return download(img, crs, region,scale_in_metres)
 
 
 def get_ndvi(start,end,region, scale_in_metres, crs = "EPSG:4326"):
@@ -75,7 +76,7 @@ def get_ndvi(start,end,region, scale_in_metres, crs = "EPSG:4326"):
 
     # Compute NDVI: (B8 - B4)/(B8 + B4)
     ndvi = composite.normalizedDifference(['B8', 'B4']).rename('NDVI')
-    return download(ndvi, crs, region)
+    return download(ndvi, crs, region,scale_in_metres)
 
 
 
@@ -106,7 +107,7 @@ def get_park_bbox(park):
 
 if __name__ == "__main__":
     scale_in_metres = 90 # ---------
-    park = 'mbe' # --------- # mbe # okwangwo
+    park = 'okwangwo' # ---------  # okwangwo
     ee.Authenticate()
     ee.Initialize(project="friction-maps")
     CRS = "EPSG:4326"
@@ -129,8 +130,8 @@ if __name__ == "__main__":
             
         elif layer in ['temperature_2m', 'dewpoint_temperature_2m', 'total_precipitation_sum']:
 
-            for year in range(2016, 2025):#!!!!!!!!!!!!!!!!!!!!!!!!!!
-                for month in range(1, 13):
+            for year in range(2025, 2026):#!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+                for month in range(8, 9):
                     start = f"{year}-{month:02d}-01"
 
                     if month != 12:

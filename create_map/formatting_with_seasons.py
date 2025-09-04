@@ -170,6 +170,5 @@ def get_park_years(gpx_file):
     return (max(min(years),2016), max(years)) if years else None
 
 
-
-#df_list = format_gpx('gps/oban.gpx')
-#print(df_list)
+df_list = get_park_years('gps/okwangwo.gpx')
+print(df_list)
